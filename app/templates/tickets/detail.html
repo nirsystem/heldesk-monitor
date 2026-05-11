@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}כרטיס #{{ ticket.id }} — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-ticket me-2 text-primary"></i>כרטיס #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+{% set slabels = {'open':'פתוח','in_progress':'בטיפול','resolved':'נפתר','closed':'סגור'} %}
+{% set plabels = {'critical':'קריטי','high':'גבוה','medium':'בינוני','low':'נמוך'} %}
+{% set role = session.get('role') %}
+{% set uid = session.get('user_id') %}
+
+<div class="row g-3">
+  <!-- Main column -->
+  <div class="col-lg-8">
+    <!-- Ticket header -->
+    <div class="card mb-3" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h5 class="mb-0 fw-700" style="color:#1e293b">{{ ticket.title }}</h5>
+          <div class="d-flex gap-2">
+            <span class="badge-sm badge-status-{{ ticket.status }}">{{ slabels.get(ticket.status) }}</span>
+            <span class="badge-sm badge-priority-{{ ticket.priority }}">{{ plabels.get(ticket.priority) }}</span>
+          </div>
+        </div>
+        <p style="color:#475569;font-size:.9rem;white-space:pre-wrap">{{ ticket.description }}</p>
+        <div class="d-flex gap-4 mt-3" style="font-size:.8rem;color:#64748b">
+          <span><i class="fa-solid fa-user me-1"></i>{{ ticket.creator_name }}</span>
+          <span><i class="fa-solid fa-folder me-1"></i>{{ ticket.category }}</span>
+          <span><i class="fa-solid fa-calendar me-1"></i>{{ ticket.created_at[:16].replace('T',' ') }}</span>
+          {% if ticket.assignee_name %}
+          <span><i class="fa-solid fa-wrench me-1"></i>{{ ticket.assignee_name }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="card mb-3" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-header bg-white" style="border-radius:12px 12px 0 0;border-bottom:1px solid #e2e8f0;padding:.85rem 1.25rem">
+        <span style="font-weight:600;font-size:.9rem">
+          <i class="fa-solid fa-comments me-2 text-primary"></i>תגובות ({{ comments|length }})
+        </span>
+      </div>
+      <div class="card-body p-3">
+        {% if comments %}
+          <div class="d-flex flex-column gap-2 mb-3">
+            {% for c in comments %}
+            <div class="comment-bubble">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="comment-author">{{ c.username }}</span>
+                <span class="comment-time">{{ c.created_at[:16].replace('T',' ') }}</span>
+              </div>
+              <p class="mb-0" style="font-size:.88rem;color:#374151;white-space:pre-wrap">{{ c.content }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted text-center py-2" style="font-size:.85rem">אין תגובות עדיין</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('main.update_ticket', ticket_id=ticket.id) }}">
+          <input type="hidden" name="action" value="comment">
+          <div class="mb-2">
+            <textarea class="form-control" name="content" rows="3"
+                      placeholder="הוסף תגובה..." required style="font-size:.88rem;border-radius:8px"></textarea>
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary" style="border-radius:6px">
+            <i class="fa-solid fa-reply me-1"></i>שלח תגובה
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-header bg-white" style="border-radius:12px 12px 0 0;border-bottom:1px solid #e2e8f0;padding:.85rem 1.25rem">
+        <span style="font-weight:600;font-size:.9rem">
+          <i class="fa-solid fa-paperclip me-2 text-primary"></i>צרופות ({{ attachments|length }})
+        </span>
+      </div>
+      <div class="card-body p-3">
+        {% if attachments %}
+        <div class="d-flex flex-column gap-2 mb-3">
+          {% for a in attachments %}
+          <div class="d-flex align-items-center gap-2 p-2"
+               style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+            <i class="fa-solid fa-file fa-fw text-muted"></i>
+            <a href="{{ url_for('main.get_attachment', ticket_id=ticket.id, att_id=a.id) }}"
+               target="_blank" style="font-size:.85rem;text-decoration:none;flex:1">
+              {{ a.filename }}
+            </a>
+            <span style="font-size:.75rem;color:#94a3b8">{{ a.uploader }} · {{ a.created_at[:10] }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-2" style="font-size:.85rem">אין צרופות</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('main.update_ticket', ticket_id=ticket.id) }}"
+              enctype="multipart/form-data">
+          <input type="hidden" name="action" value="attachment">
+          <div class="input-group input-group-sm">
+            <input type="file" class="form-control" name="attachment"
+                   accept="image/*,.pdf,.doc,.docx,.txt,.zip,.log" required>
+            <button type="submit" class="btn btn-outline-primary" style="border-radius:0 6px 6px 0">
+              <i class="fa-solid fa-upload me-1"></i>העלה
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar actions -->
+  <div class="col-lg-4">
+    <!-- Status update -->
+    {% if role in ('admin', 'technician') %}
+    <div class="card mb-3" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-body p-3">
+        <h6 class="fw-600 mb-3"><i class="fa-solid fa-arrows-spin me-2 text-primary"></i>עדכון סטטוס</h6>
+        <form method="POST" action="{{ url_for('main.update_ticket', ticket_id=ticket.id) }}">
+          <input type="hidden" name="action" value="status">
+          <div class="mb-2">
+            <select class="form-select form-select-sm" name="status" style="border-radius:6px">
+              {% for val, lbl in [('open','פתוח'),('in_progress','בטיפול'),('resolved','נפתר'),('closed','סגור')] %}
+              <option value="{{ val }}" {% if ticket.status == val %}selected{% endif %}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary w-100" style="border-radius:6px">
+            <i class="fa-solid fa-check me-1"></i>עדכן סטטוס
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Assign ticket (admin only) -->
+    {% if role == 'admin' %}
+    <div class="card mb-3" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-body p-3">
+        <h6 class="fw-600 mb-3"><i class="fa-solid fa-user-gear me-2 text-primary"></i>הקצאה</h6>
+        <form method="POST" action="{{ url_for('main.update_ticket', ticket_id=ticket.id) }}">
+          <input type="hidden" name="action" value="assign">
+          <div class="mb-2">
+            <select class="form-select form-select-sm" name="assigned_to" style="border-radius:6px">
+              <option value="">— לא מוקצה —</option>
+              {% for tech in technicians %}
+              <option value="{{ tech.id }}" {% if ticket.assigned_to == tech.id %}selected{% endif %}>
+                {{ tech.username }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-sm btn-outline-primary w-100" style="border-radius:6px">
+            <i class="fa-solid fa-user-plus me-1"></i>הקצה
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Info card -->
+    <div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-body p-3">
+        <h6 class="fw-600 mb-3"><i class="fa-solid fa-circle-info me-2 text-primary"></i>פרטים</h6>
+        <dl class="mb-0" style="font-size:.83rem">
+          <dt class="text-muted fw-400 mb-1">קטגוריה</dt>
+          <dd class="mb-2">{{ ticket.category }}</dd>
+          <dt class="text-muted fw-400 mb-1">פותח על ידי</dt>
+          <dd class="mb-2">{{ ticket.creator_name }}</dd>
+          <dt class="text-muted fw-400 mb-1">תאריך פתיחה</dt>
+          <dd class="mb-2">{{ ticket.created_at[:16].replace('T',' ') }}</dd>
+          <dt class="text-muted fw-400 mb-1">עדכון אחרון</dt>
+          <dd class="mb-0">{{ ticket.updated_at[:16].replace('T',' ') }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

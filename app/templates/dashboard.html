@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}דשבורד — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-house me-2 text-primary"></i>דשבורד{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#dbeafe">
+          <i class="fa-solid fa-ticket" style="color:#3b82f6"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.8rem">סה"כ כרטיסים</div>
+          <div style="font-size:1.6rem;font-weight:700;line-height:1.2">{{ total }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#dbeafe">
+          <i class="fa-solid fa-inbox" style="color:#2563eb"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.8rem">פתוחים</div>
+          <div style="font-size:1.6rem;font-weight:700;line-height:1.2">{{ open_c }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#fef3c7">
+          <i class="fa-solid fa-spinner" style="color:#d97706"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.8rem">בטיפול</div>
+          <div style="font-size:1.6rem;font-weight:700;line-height:1.2">{{ inp }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#d1fae5">
+          <i class="fa-solid fa-circle-check" style="color:#059669"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.8rem">נפתרו</div>
+          <div style="font-size:1.6rem;font-weight:700;line-height:1.2">{{ resolved }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center"
+       style="border-radius:12px 12px 0 0;border-bottom:1px solid #e2e8f0;padding:.9rem 1.25rem">
+    <span style="font-weight:600;font-size:.95rem">
+      <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>כרטיסים אחרונים
+    </span>
+    <a href="{{ url_for('main.tickets') }}" class="btn btn-sm btn-outline-primary"
+       style="font-size:.8rem;border-radius:6px">הצג הכל</a>
+  </div>
+  <div class="card-body p-0">
+    {% if recent %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.875rem">
+        <thead style="background:#f8fafc">
+          <tr>
+            <th class="px-4 py-3">#</th>
+            <th class="py-3">כותרת</th>
+            <th class="py-3">סטטוס</th>
+            <th class="py-3">עדיפות</th>
+            <th class="py-3">פותח</th>
+            <th class="py-3">מוקצה</th>
+            <th class="py-3">תאריך</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in recent %}
+          <tr>
+            <td class="px-4 text-muted">{{ t.id }}</td>
+            <td>
+              <a href="{{ url_for('main.ticket_detail', ticket_id=t.id) }}"
+                 style="text-decoration:none;color:#1e293b;font-weight:500">
+                {{ t.title }}
+              </a>
+            </td>
+            <td>
+              <span class="badge-sm badge-status-{{ t.status }}">
+                {% set slabels = {'open':'פתוח','in_progress':'בטיפול','resolved':'נפתר','closed':'סגור'} %}
+                {{ slabels.get(t.status, t.status) }}
+              </span>
+            </td>
+            <td>
+              <span class="badge-sm badge-priority-{{ t.priority }}">
+                {% set plabels = {'critical':'קריטי','high':'גבוה','medium':'בינוני','low':'נמוך'} %}
+                {{ plabels.get(t.priority, t.priority) }}
+              </span>
+            </td>
+            <td class="text-muted">{{ t.creator_name }}</td>
+            <td class="text-muted">{{ t.assignee_name or '—' }}</td>
+            <td class="text-muted" style="font-size:.78rem">{{ t.created_at[:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="fa-solid fa-inbox fa-2x mb-2"></i>
+      <p>אין כרטיסים להצגה</p>
+      <a href="{{ url_for('main.new_ticket') }}" class="btn btn-primary btn-sm">פתח כרטיס ראשון</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}כרטיס חדש — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-plus-circle me-2 text-primary"></i>פתיחת כרטיס חדש{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-body p-4">
+        <form method="POST" enctype="multipart/form-data">
+          <div class="mb-4">
+            <label class="form-label fw-500" for="title">
+              כותרת הכרטיס <span class="text-danger">*</span>
+            </label>
+            <input type="text" class="form-control" id="title" name="title"
+                   placeholder="תאר בקצרה את הבעיה..." required maxlength="200">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-500" for="description">
+              תיאור מפורט <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="description" name="description"
+                      rows="5" required
+                      placeholder="פרט את הבעיה, מה קרה, מתי, מה ניסית לעשות..."></textarea>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <label class="form-label fw-500" for="priority">עדיפות</label>
+              <select class="form-select" id="priority" name="priority">
+                <option value="low">נמוך</option>
+                <option value="medium" selected>בינוני</option>
+                <option value="high">גבוה</option>
+                <option value="critical">קריטי</option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-500" for="category">קטגוריה</label>
+              <select class="form-select" id="category" name="category">
+                <option value="general">כללי</option>
+                <option value="hardware">Hardware</option>
+                <option value="software">Software</option>
+                <option value="network">רשת</option>
+                <option value="security">אבטחה</option>
+                <option value="other">אחר</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-500" for="attachment">צרופה (אופציונלי)</label>
+            <input type="file" class="form-control" id="attachment" name="attachment"
+                   accept="image/*,.pdf,.doc,.docx,.txt,.zip,.log">
+            <div class="form-text">מקסימום 16MB. נדרש הגדרת S3.</div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" style="border-radius:8px;padding:.6rem 1.5rem">
+              <i class="fa-solid fa-paper-plane me-2"></i>פתח כרטיס
+            </button>
+            <a href="{{ url_for('main.tickets') }}" class="btn btn-outline-secondary" style="border-radius:8px">
+              ביטול
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

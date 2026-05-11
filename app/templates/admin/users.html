@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}ניהול משתמשים — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-users me-2 text-primary"></i>ניהול משתמשים{% endblock %}
+
+{% block content %}
+{% set role_labels = {'admin':'מנהל','technician':'טכנאי','user':'משתמש'} %}
+{% set role_colors = {'admin':'#8b5cf6','technician':'#0891b2','user':'#059669'} %}
+{% set role_bgs = {'admin':'#ede9fe','technician':'#cffafe','user':'#d1fae5'} %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span class="text-muted" style="font-size:.85rem">{{ users|length }} משתמשים רשומים</span>
+  <a href="{{ url_for('admin.new_user') }}" class="btn btn-primary btn-sm" style="border-radius:6px">
+    <i class="fa-solid fa-user-plus me-1"></i>משתמש חדש
+  </a>
+</div>
+
+<div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.875rem">
+        <thead style="background:#f8fafc">
+          <tr>
+            <th class="px-4 py-3">#</th>
+            <th class="py-3">שם משתמש</th>
+            <th class="py-3">מייל</th>
+            <th class="py-3">תפקיד</th>
+            <th class="py-3">סטטוס</th>
+            <th class="py-3">נוצר</th>
+            <th class="py-3">פעולה</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td class="px-4 text-muted">{{ u.id }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:30px;height:30px;border-radius:50%;background:#f1f5f9;
+                            display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#64748b">
+                  {{ u.username[0].upper() }}
+                </div>
+                <span style="font-weight:500">{{ u.username }}</span>
+              </div>
+            </td>
+            <td class="text-muted">{{ u.email or '—' }}</td>
+            <td>
+              <span class="badge-sm" style="background:{{ role_bgs.get(u.role,'#f1f5f9') }};color:{{ role_colors.get(u.role,'#475569') }}">
+                {{ role_labels.get(u.role, u.role) }}
+              </span>
+            </td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge-sm" style="background:#d1fae5;color:#065f46">
+                  <i class="fa-solid fa-circle fa-xs me-1"></i>פעיל
+                </span>
+              {% else %}
+                <span class="badge-sm" style="background:#fee2e2;color:#991b1b">
+                  <i class="fa-solid fa-circle fa-xs me-1"></i>מנוטרל
+                </span>
+              {% endif %}
+            </td>
+            <td class="text-muted" style="font-size:.78rem">{{ u.created_at[:10] }}</td>
+            <td>
+              {% if u.id != session.get('user_id') %}
+              <form method="POST" action="{{ url_for('admin.toggle_user', user_id=u.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                        style="font-size:.75rem;border-radius:5px;padding:.2rem .6rem">
+                  {% if u.is_active %}נטרל{% else %}הפעל{% endif %}
+                </button>
+              </form>
+              {% else %}
+              <span class="text-muted" style="font-size:.78rem">אתה</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}כרטיסים מוסלקים — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-box-archive me-2 text-primary"></i>כרטיסים מוסלקים{% endblock %}
+
+{% block content %}
+{% set slabels = {'open':'פתוח','in_progress':'בטיפול','resolved':'נפתר','closed':'סגור'} %}
+{% set plabels = {'critical':'קריטי','high':'גבוה','medium':'בינוני','low':'נמוך'} %}
+
+<!-- Auto-delete settings -->
+<div class="card mb-3" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-body p-3">
+    <div class="row align-items-center g-2">
+      <div class="col-auto">
+        <i class="fa-solid fa-clock-rotate-left text-primary me-1"></i>
+        <span style="font-weight:600;font-size:.9rem">מחיקה אוטומטית</span>
+      </div>
+      <div class="col">
+        <form method="POST" action="{{ url_for('admin.save_cleared_settings') }}"
+              class="d-flex align-items-center gap-2">
+          <span class="text-muted" style="font-size:.85rem;white-space:nowrap">מחק כרטיסים מוסלקים לאחר</span>
+          <input type="number" name="auto_delete_days" min="0" max="3650"
+                 value="{{ auto_delete_days }}"
+                 class="form-control form-control-sm" style="width:80px;border-radius:6px">
+          <span class="text-muted" style="font-size:.85rem">ימים</span>
+          <button type="submit" class="btn btn-sm btn-primary" style="border-radius:6px;white-space:nowrap">
+            <i class="fa-solid fa-floppy-disk me-1"></i>שמור
+          </button>
+          {% if auto_delete_days > 0 %}
+          <span class="badge-sm" style="background:#d1fae5;color:#065f46;white-space:nowrap">
+            <i class="fa-solid fa-circle fa-xs me-1"></i>פעיל — {{ auto_delete_days }} ימים
+          </span>
+          {% else %}
+          <span class="badge-sm" style="background:#f1f5f9;color:#64748b;white-space:nowrap">
+            <i class="fa-solid fa-circle fa-xs me-1"></i>כבוי (0 = ללא מחיקה אוטומטית)
+          </span>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Header row -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span class="text-muted" style="font-size:.85rem">
+    {{ tickets|length }} כרטיסים מוסלקים
+  </span>
+  {% if tickets %}
+  <form method="POST" action="{{ url_for('admin.delete_all_cleared') }}"
+        onsubmit="return confirm('למחוק את כל {{ tickets|length }} הכרטיסים לצמיתות? פעולה זו אינה הפיכה.')">
+    <button type="submit" class="btn btn-sm btn-danger" style="border-radius:6px">
+      <i class="fa-solid fa-trash-can me-1"></i>מחק הכל לצמיתות
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+{% if tickets %}
+<div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.875rem">
+        <thead style="background:#f8fafc">
+          <tr>
+            <th class="px-4 py-3">#</th>
+            <th class="py-3">כותרת</th>
+            <th class="py-3">סטטוס</th>
+            <th class="py-3">עדיפות</th>
+            <th class="py-3">פותח על ידי</th>
+            <th class="py-3">הוסלק בתאריך</th>
+            {% if auto_delete_days > 0 %}
+            <th class="py-3">נמחק בעוד</th>
+            {% endif %}
+            <th class="py-3">פעולות</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tickets %}
+          {% set archived_date = t.archived_at[:10] if t.archived_at else '—' %}
+          <tr>
+            <td class="px-4 text-muted">{{ t.id }}</td>
+            <td>
+              <span style="font-weight:500;color:#1e293b">{{ t.title|truncate(45) }}</span>
+              {% if t.assignee_name %}
+              <div style="font-size:.75rem;color:#94a3b8">
+                <i class="fa-solid fa-wrench fa-xs me-1"></i>{{ t.assignee_name }}
+              </div>
+              {% endif %}
+            </td>
+            <td><span class="badge-sm badge-status-{{ t.status }}">{{ slabels.get(t.status) }}</span></td>
+            <td><span class="badge-sm badge-priority-{{ t.priority }}">{{ plabels.get(t.priority) }}</span></td>
+            <td class="text-muted">{{ t.creator_name }}</td>
+            <td class="text-muted" style="font-size:.8rem">{{ archived_date }}</td>
+            {% if auto_delete_days > 0 %}
+            <td style="font-size:.8rem">
+              {% if t.archived_at %}
+                {% set days_left = auto_delete_days - ((now_str[:10]|string)|int - (t.archived_at[:10]|string)|int) %}
+                <span style="color:#d97706">בקרוב</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            {% endif %}
+            <td>
+              <div class="d-flex gap-1">
+                <form method="POST"
+                      action="{{ url_for('admin.restore_ticket', ticket_id=t.id) }}"
+                      class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-success"
+                          style="font-size:.75rem;border-radius:5px;padding:.2rem .6rem"
+                          title="שחזר כרטיס">
+                    <i class="fa-solid fa-rotate-left me-1"></i>שחזר
+                  </button>
+                </form>
+                <form method="POST"
+                      action="{{ url_for('admin.delete_ticket', ticket_id=t.id) }}"
+                      class="d-inline"
+                      onsubmit="return confirm('למחוק כרטיס #{{ t.id }} לצמיתות?')">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                          style="font-size:.75rem;border-radius:5px;padding:.2rem .6rem"
+                          title="מחק לצמיתות">
+                    <i class="fa-solid fa-trash me-1"></i>מחק
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-body text-center py-5">
+    <i class="fa-solid fa-box-open fa-3x mb-3" style="color:#cbd5e1"></i>
+    <p class="text-muted mb-0">אין כרטיסים מוסלקים כרגע</p>
+    <p class="text-muted" style="font-size:.82rem">
+      כרטיסים שסטטוסם שונה ל"נפתר" או "סגור" יופיעו כאן
+    </p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

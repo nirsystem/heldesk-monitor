@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}HelpDesk Pro{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --sidebar-bg: #1e293b;
+      --sidebar-hover: #334155;
+      --sidebar-active: #3b82f6;
+      --sidebar-width: 255px;
+    }
+    body { background: #f1f5f9; min-height: 100vh; }
+    .sidebar {
+      width: var(--sidebar-width);
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      position: fixed;
+      top: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-brand {
+      padding: 1.25rem 1rem;
+      border-bottom: 1px solid #334155;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .sidebar-brand span { color: #60a5fa; }
+    .sidebar-nav { flex: 1; padding: 0.5rem 0; }
+    .sidebar-nav .nav-link {
+      color: #94a3b8;
+      padding: 0.6rem 1.25rem;
+      border-radius: 0;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      transition: all 0.15s;
+    }
+    .sidebar-nav .nav-link:hover {
+      background: var(--sidebar-hover);
+      color: #e2e8f0;
+    }
+    .sidebar-nav .nav-link.active {
+      background: var(--sidebar-active);
+      color: #fff;
+    }
+    .sidebar-nav .nav-section {
+      padding: 0.75rem 1.25rem 0.25rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+    }
+    .main-wrapper {
+      margin-right: var(--sidebar-width);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-bar {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0.6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top-bar .page-title { font-weight: 600; font-size: 1rem; color: #1e293b; }
+    .top-bar .user-badge {
+      background: #f1f5f9;
+      border-radius: 999px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.85rem;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .content-area { padding: 1.5rem; flex: 1; }
+
+    .badge-status-open       { background: #dbeafe; color: #1d4ed8; }
+    .badge-status-in_progress{ background: #fef3c7; color: #92400e; }
+    .badge-status-resolved   { background: #d1fae5; color: #065f46; }
+    .badge-status-closed     { background: #f1f5f9; color: #475569; }
+
+    .badge-priority-critical { background: #fee2e2; color: #991b1b; }
+    .badge-priority-high     { background: #ffedd5; color: #9a3412; }
+    .badge-priority-medium   { background: #dbeafe; color: #1e40af; }
+    .badge-priority-low      { background: #f1f5f9; color: #475569; }
+
+    .stat-card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .stat-card .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .table-hover tbody tr:hover { background: #f8fafc; }
+    .kanban-board { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem; }
+    .kanban-col {
+      min-width: 270px; flex: 1;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    .kanban-col-header {
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kanban-col-body { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem; min-height: 120px; }
+    .kanban-card {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 0.75rem;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: box-shadow 0.15s;
+    }
+    .kanban-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); color: inherit; }
+    .kanban-card .card-id { font-size: 0.72rem; color: #94a3b8; }
+    .kanban-card .card-title { font-size: 0.88rem; font-weight: 500; margin: 0.2rem 0; }
+    .kanban-card .card-meta { font-size: 0.75rem; color: #64748b; }
+    .badge-sm { font-size: 0.7rem; padding: 0.2em 0.55em; border-radius: 4px; font-weight: 600; }
+    .comment-bubble {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+    .comment-bubble .comment-author { font-weight: 600; font-size: 0.85rem; }
+    .comment-bubble .comment-time { font-size: 0.75rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <i class="fa-solid fa-headset me-2"></i>HelpDesk <span>Pro</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">ניווט ראשי</div>
+    <a href="{{ url_for('main.dashboard') }}"
+       class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+      <i class="fa-solid fa-house fa-fw"></i> דשבורד
+    </a>
+    <a href="{{ url_for('main.tickets') }}"
+       class="nav-link {% if request.endpoint in ('main.tickets','main.ticket_detail') %}active{% endif %}">
+      <i class="fa-solid fa-ticket fa-fw"></i> כל הכרטיסים
+    </a>
+    <a href="{{ url_for('main.new_ticket') }}"
+       class="nav-link {% if request.endpoint == 'main.new_ticket' %}active{% endif %}">
+      <i class="fa-solid fa-plus-circle fa-fw"></i> כרטיס חדש
+    </a>
+    <a href="{{ url_for('main.kanban') }}"
+       class="nav-link {% if request.endpoint == 'main.kanban' %}active{% endif %}">
+      <i class="fa-solid fa-table-columns fa-fw"></i> לוח Kanban
+    </a>
+
+    {% if session.get('role') == 'admin' %}
+    <div class="nav-section">ניהול</div>
+    <a href="{{ url_for('admin.panel') }}"
+       class="nav-link {% if request.endpoint == 'admin.panel' %}active{% endif %}">
+      <i class="fa-solid fa-gauge fa-fw"></i> Admin Panel
+    </a>
+    <a href="{{ url_for('admin.users') }}"
+       class="nav-link {% if request.endpoint in ('admin.users','admin.new_user') %}active{% endif %}">
+      <i class="fa-solid fa-users fa-fw"></i> ניהול משתמשים
+    </a>
+    <a href="{{ url_for('admin.cleared_tickets') }}"
+       class="nav-link {% if request.endpoint == 'admin.cleared_tickets' %}active{% endif %}">
+      <i class="fa-solid fa-box-archive fa-fw"></i> כרטיסים מוסלקים
+    </a>
+    <a href="{{ url_for('admin.logs') }}"
+       class="nav-link {% if request.endpoint == 'admin.logs' %}active{% endif %}">
+      <i class="fa-solid fa-scroll fa-fw"></i> לוגי ביקורת
+    </a>
+    {% endif %}
+
+    <div class="nav-section">חשבון</div>
+    <a href="{{ url_for('auth.profile') }}"
+       class="nav-link {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+      <i class="fa-solid fa-user-gear fa-fw"></i> הפרופיל שלי
+    </a>
+    <a href="{{ url_for('auth.logout') }}" class="nav-link">
+      <i class="fa-solid fa-right-from-bracket fa-fw"></i> התנתק
+    </a>
+  </nav>
+</div>
+
+<div class="main-wrapper">
+  <div class="top-bar">
+    <span class="page-title">{% block page_title %}{% endblock %}</span>
+    <div class="user-badge">
+      <i class="fa-solid fa-circle-user"></i>
+      {{ session.get('username') }}
+      &nbsp;·&nbsp;
+      {% set role_labels = {'admin': 'מנהל', 'technician': 'טכנאי', 'user': 'משתמש'} %}
+      {{ role_labels.get(session.get('role',''), session.get('role','')) }}
+    </div>
+  </div>
+
+  <div class="content-area">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

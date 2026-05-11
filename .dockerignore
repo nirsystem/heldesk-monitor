@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.idea/
+data/
+*.db
+.env
+*.md
+kubernetes/
+terraform/
+.github/

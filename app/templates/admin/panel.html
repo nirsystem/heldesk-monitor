@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-gauge me-2 text-primary"></i>Admin Panel{% endblock %}
+
+{% block content %}
+{% set slabels = {'open':'פתוח','in_progress':'בטיפול','resolved':'נפתר','closed':'סגור'} %}
+{% set plabels = {'critical':'קריטי','high':'גבוה','medium':'בינוני','low':'נמוך'} %}
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  {% for icon, color, bg, label, val, href in [
+    ('fa-users','#8b5cf6','#ede9fe','משתמשים', stats.users, url_for('admin.users')),
+    ('fa-ticket','#3b82f6','#dbeafe','סה"כ כרטיסים', stats.tickets, url_for('main.tickets')),
+    ('fa-inbox','#2563eb','#dbeafe','פתוחים', stats.open, url_for('main.tickets', status='open')),
+    ('fa-spinner','#d97706','#fef3c7','בטיפול', stats.in_progress, url_for('main.tickets', status='in_progress')),
+    ('fa-box-archive','#dc2626','#fee2e2','מוסלקים', stats.archived, url_for('admin.cleared_tickets')),
+    ('fa-lock','#64748b','#f1f5f9','סגורים', stats.closed, url_for('main.tickets', status='closed')),
+  ] %}
+  <div class="col-sm-6 col-xl-2">
+    <a href="{{ href }}" style="text-decoration:none">
+    <div class="card stat-card h-100">
+      <div class="card-body d-flex align-items-center gap-2 py-3">
+        <div class="stat-icon flex-shrink-0" style="background:{{ bg }};width:40px;height:40px;font-size:1rem">
+          <i class="fa-solid {{ icon }}" style="color:{{ color }}"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.72rem">{{ label }}</div>
+          <div style="font-size:1.35rem;font-weight:700;line-height:1.1;color:#1e293b">{{ val }}</div>
+        </div>
+      </div>
+    </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  <!-- Recent tickets -->
+  <div class="col-lg-7">
+    <div class="card h-100" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center"
+           style="border-radius:12px 12px 0 0;border-bottom:1px solid #e2e8f0;padding:.85rem 1.25rem">
+        <span style="font-weight:600;font-size:.9rem">
+          <i class="fa-solid fa-ticket me-2 text-primary"></i>כרטיסים אחרונים
+        </span>
+        <a href="{{ url_for('main.tickets') }}" style="font-size:.8rem;color:#3b82f6;text-decoration:none">הצג הכל</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:.82rem">
+            <thead style="background:#f8fafc">
+              <tr>
+                <th class="px-3 py-2">#</th>
+                <th class="py-2">כותרת</th>
+                <th class="py-2">סטטוס</th>
+                <th class="py-2">עדיפות</th>
+                <th class="py-2">מוקצה</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in all_tickets %}
+              <tr>
+                <td class="px-3 text-muted">{{ t.id }}</td>
+                <td>
+                  <a href="{{ url_for('main.ticket_detail', ticket_id=t.id) }}"
+                     style="text-decoration:none;color:#1e293b;font-weight:500">
+                    {{ t.title|truncate(35) }}
+                  </a>
+                </td>
+                <td><span class="badge-sm badge-status-{{ t.status }}">{{ slabels.get(t.status) }}</span></td>
+                <td><span class="badge-sm badge-priority-{{ t.priority }}">{{ plabels.get(t.priority) }}</span></td>
+                <td class="text-muted">{{ t.assignee_name or '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent audit logs -->
+  <div class="col-lg-5">
+    <div class="card h-100" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center"
+           style="border-radius:12px 12px 0 0;border-bottom:1px solid #e2e8f0;padding:.85rem 1.25rem">
+        <span style="font-weight:600;font-size:.9rem">
+          <i class="fa-solid fa-scroll me-2 text-primary"></i>לוגי ביקורת
+        </span>
+        <a href="{{ url_for('admin.logs') }}" style="font-size:.8rem;color:#3b82f6;text-decoration:none">הצג הכל</a>
+      </div>
+      <div class="card-body p-0" style="overflow-y:auto;max-height:380px">
+        {% for log in recent_logs %}
+        <div class="d-flex gap-2 px-3 py-2" style="border-bottom:1px solid #f1f5f9;font-size:.78rem">
+          <div style="flex-shrink:0">
+            <div style="width:28px;height:28px;background:#dbeafe;border-radius:50%;
+                        display:flex;align-items:center;justify-content:center">
+              <i class="fa-solid fa-bolt fa-xs" style="color:#3b82f6"></i>
+            </div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:500;color:#1e293b">{{ log.action }}</div>
+            <div class="text-muted text-truncate">{{ log.username }} · {{ log.details or '' }}</div>
+          </div>
+          <div class="text-muted flex-shrink-0" style="font-size:.72rem">{{ log.created_at[11:16] }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

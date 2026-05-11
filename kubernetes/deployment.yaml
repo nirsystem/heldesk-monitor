@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helpdesk-app
+  namespace: helpdesk
+  labels:
+    app: helpdesk-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helpdesk-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: helpdesk-app
+    spec:
+      serviceAccountName: helpdesk-sa
+      containers:
+        - name: helpdesk
+          # החלף YOUR_DOCKERHUB_USERNAME בשם המשתמש שלך ב-DockerHub
+          image: YOUR_DOCKERHUB_USERNAME/helpdesk-pro:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: helpdesk-config
+          env:
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: helpdesk-secret
+                  key: FLASK_SECRET_KEY
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: helpdesk-data-pvc

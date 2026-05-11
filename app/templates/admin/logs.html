@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}לוגי ביקורת — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-scroll me-2 text-primary"></i>לוגי ביקורת{% endblock %}
+
+{% block content %}
+{% set action_icons = {
+  'LOGIN':            ('fa-right-to-bracket', '#059669', '#d1fae5'),
+  'LOGOUT':           ('fa-right-from-bracket','#64748b','#f1f5f9'),
+  'CREATE_TICKET':    ('fa-plus-circle',      '#3b82f6', '#dbeafe'),
+  'UPDATE_STATUS':    ('fa-arrows-spin',       '#d97706', '#fef3c7'),
+  'ADD_COMMENT':      ('fa-comment',           '#8b5cf6', '#ede9fe'),
+  'ADD_ATTACHMENT':   ('fa-paperclip',         '#0891b2', '#cffafe'),
+  'ASSIGN_TICKET':    ('fa-user-gear',         '#d97706', '#fef3c7'),
+  'CREATE_USER':      ('fa-user-plus',         '#8b5cf6', '#ede9fe'),
+  'ACTIVATE_USER':    ('fa-user-check',        '#059669', '#d1fae5'),
+  'DEACTIVATE_USER':  ('fa-user-xmark',        '#dc2626', '#fee2e2'),
+  'CHANGE_PASSWORD':  ('fa-key',               '#64748b', '#f1f5f9'),
+} %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span class="text-muted" style="font-size:.85rem">{{ total }} רשומות סה"כ</span>
+</div>
+
+<div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.82rem">
+        <thead style="background:#f8fafc">
+          <tr>
+            <th class="px-4 py-3">פעולה</th>
+            <th class="py-3">משתמש</th>
+            <th class="py-3">פרטים</th>
+            <th class="py-3">IP</th>
+            <th class="py-3">זמן</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          {% set icon, color, bg = action_icons.get(log.action, ('fa-bolt','#64748b','#f1f5f9')) %}
+          <tr>
+            <td class="px-4">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:26px;height:26px;background:{{ bg }};border-radius:6px;
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <i class="fa-solid {{ icon }} fa-xs" style="color:{{ color }}"></i>
+                </div>
+                <span style="font-weight:500;color:#1e293b">{{ log.action }}</span>
+              </div>
+            </td>
+            <td style="font-weight:500">{{ log.username or '—' }}</td>
+            <td class="text-muted" style="max-width:220px">
+              <span class="text-truncate d-block">{{ log.details or '—' }}</span>
+            </td>
+            <td class="text-muted" style="font-family:monospace;font-size:.78rem">
+              {{ log.ip_address or '—' }}
+            </td>
+            <td class="text-muted" style="font-size:.78rem;white-space:nowrap">
+              {{ log.created_at[:16].replace('T',' ') }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if total_pages > 1 %}
+  <div class="card-footer bg-white" style="border-radius:0 0 12px 12px;border-top:1px solid #e2e8f0;padding:.75rem 1.25rem">
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page - 1 }}">הקודם</a>
+        </li>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+          {% if p == page %}
+          <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+          {% elif p <= 3 or p >= total_pages - 2 or (p >= page - 1 and p <= page + 1) %}
+          <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+          {% elif p == 4 or p == total_pages - 3 %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+        {% if page < total_pages %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page + 1 }}">הבא</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

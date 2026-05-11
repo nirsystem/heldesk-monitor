@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}כרטיסים — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-ticket me-2 text-primary"></i>כל הכרטיסים{% endblock %}
+
+{% block content %}
+{% set slabels = {'open':'פתוח','in_progress':'בטיפול','resolved':'נפתר','closed':'סגור'} %}
+{% set plabels = {'critical':'קריטי','high':'גבוה','medium':'בינוני','low':'נמוך'} %}
+
+<div class="card mb-3" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-body py-2 px-3">
+    <form method="GET" class="row g-2 align-items-center">
+      <div class="col-auto">
+        <label class="col-form-label col-form-label-sm text-muted">סטטוס:</label>
+      </div>
+      <div class="col-auto">
+        <select name="status" class="form-select form-select-sm" style="border-radius:6px">
+          <option value="">הכל</option>
+          {% for val, lbl in [('open','פתוח'),('in_progress','בטיפול'),('resolved','נפתר'),('closed','סגור')] %}
+          <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="col-form-label col-form-label-sm text-muted">עדיפות:</label>
+      </div>
+      <div class="col-auto">
+        <select name="priority" class="form-select form-select-sm" style="border-radius:6px">
+          <option value="">הכל</option>
+          {% for val, lbl in [('critical','קריטי'),('high','גבוה'),('medium','בינוני'),('low','נמוך')] %}
+          <option value="{{ val }}" {% if priority_filter == val %}selected{% endif %}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-primary" style="border-radius:6px">
+          <i class="fa-solid fa-filter me-1"></i>סנן
+        </button>
+        <a href="{{ url_for('main.tickets') }}" class="btn btn-sm btn-outline-secondary me-1" style="border-radius:6px">
+          <i class="fa-solid fa-xmark me-1"></i>נקה
+        </a>
+      </div>
+      <div class="col-auto me-auto">
+        <a href="{{ url_for('main.new_ticket') }}" class="btn btn-sm btn-primary" style="border-radius:6px">
+          <i class="fa-solid fa-plus me-1"></i>כרטיס חדש
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:12px">
+  <div class="card-body p-0">
+    {% if tickets %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.875rem">
+        <thead style="background:#f8fafc">
+          <tr>
+            <th class="px-4 py-3">#</th>
+            <th class="py-3">כותרת</th>
+            <th class="py-3">קטגוריה</th>
+            <th class="py-3">סטטוס</th>
+            <th class="py-3">עדיפות</th>
+            <th class="py-3">פותח</th>
+            <th class="py-3">מוקצה</th>
+            <th class="py-3">עודכן</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tickets %}
+          <tr>
+            <td class="px-4 text-muted" style="font-size:.8rem">{{ t.id }}</td>
+            <td>
+              <a href="{{ url_for('main.ticket_detail', ticket_id=t.id) }}"
+                 style="text-decoration:none;color:#1e293b;font-weight:500">
+                {{ t.title }}
+              </a>
+            </td>
+            <td class="text-muted" style="font-size:.82rem">{{ t.category }}</td>
+            <td>
+              <span class="badge-sm badge-status-{{ t.status }}">
+                {{ slabels.get(t.status, t.status) }}
+              </span>
+            </td>
+            <td>
+              <span class="badge-sm badge-priority-{{ t.priority }}">
+                {{ plabels.get(t.priority, t.priority) }}
+              </span>
+            </td>
+            <td class="text-muted">{{ t.creator_name }}</td>
+            <td class="text-muted">{{ t.assignee_name or '—' }}</td>
+            <td class="text-muted" style="font-size:.78rem">{{ t.updated_at[:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="fa-solid fa-inbox fa-2x mb-2"></i>
+      <p class="mb-2">לא נמצאו כרטיסים</p>
+      <a href="{{ url_for('main.new_ticket') }}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus me-1"></i>פתח כרטיס חדש
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

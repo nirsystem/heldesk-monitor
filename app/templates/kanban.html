@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}לוח Kanban — HelpDesk Pro{% endblock %}
+{% block page_title %}<i class="fa-solid fa-table-columns me-2 text-primary"></i>לוח Kanban{% endblock %}
+
+{% block content %}
+{% set col_cfg = [
+  ('open',        'פתוח',   '#3b82f6', '#dbeafe', 'fa-inbox'),
+  ('in_progress', 'בטיפול', '#d97706', '#fef3c7', 'fa-spinner'),
+  ('resolved',    'נפתר',   '#059669', '#d1fae5', 'fa-circle-check'),
+  ('closed',      'סגור',   '#64748b', '#f1f5f9', 'fa-lock'),
+] %}
+{% set plabels = {'critical':'קריטי','high':'גבוה','medium':'בינוני','low':'נמוך'} %}
+{% set pcolors = {'critical':'badge-priority-critical','high':'badge-priority-high','medium':'badge-priority-medium','low':'badge-priority-low'} %}
+
+<div class="kanban-board">
+  {% for status, label, color, bg, icon in col_cfg %}
+  {% set cards = columns[status] %}
+  <div class="kanban-col">
+    <div class="kanban-col-header" style="background:{{ bg }}">
+      <span style="color:{{ color }}">
+        <i class="fa-solid {{ icon }} me-1"></i>{{ label }}
+      </span>
+      <span class="badge rounded-pill" style="background:{{ color }};color:#fff;font-size:.72rem">
+        {{ cards|length }}
+      </span>
+    </div>
+    <div class="kanban-col-body">
+      {% if cards %}
+        {% for t in cards %}
+        <a href="{{ url_for('main.ticket_detail', ticket_id=t.id) }}" class="kanban-card">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="card-id">#{{ t.id }}</span>
+            <span class="badge-sm {{ pcolors.get(t.priority,'') }}">
+              {{ plabels.get(t.priority, t.priority) }}
+            </span>
+          </div>
+          <div class="card-title">{{ t.title }}</div>
+          <div class="card-meta">
+            <i class="fa-solid fa-user fa-xs me-1"></i>{{ t.creator_name }}
+            {% if t.assignee_name %}
+            · <i class="fa-solid fa-wrench fa-xs me-1"></i>{{ t.assignee_name }}
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div class="text-center text-muted py-4" style="font-size:.82rem">
+          <i class="fa-solid fa-inbox fa-lg mb-1 d-block"></i>אין כרטיסים
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
