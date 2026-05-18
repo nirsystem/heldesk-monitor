@@ -24,7 +24,7 @@ spec:
       containers:
         - name: helpdesk
           # החלף YOUR_DOCKERHUB_USERNAME בשם המשתמש שלך ב-DockerHub
-          image: YOUR_DOCKERHUB_USERNAME/helpdesk-pro:latest
+          image: bhr100/helpdesk-pro:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000

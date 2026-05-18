@@ -675,3 +675,4 @@ kubectl rollout status (בדיקת הצלחה)
 ---
 
 *פרויקט גמר — קורס DevSecOps | HelpDesk Pro Enterprise Ticket System*
+# pipeline test
