@@ -5,8 +5,8 @@ metadata:
   namespace: helpdesk
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 5Gi
-  storageClassName: gp2
+  storageClassName: efs-sc
