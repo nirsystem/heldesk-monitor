@@ -4,7 +4,7 @@ metadata:
   name: helpdesk-config
   namespace: helpdesk
 data:
-  S3_BUCKET_NAME: "helpdesk-attachments-yourname"   # <-- עדכן לשם ה-bucket האמיתי שלך
+  S3_BUCKET_NAME: "helpdesk-attachments-nirmarco"
   AWS_REGION: "us-east-1"
   DB_DIR: "/data"
   FLASK_ENV: "production"
